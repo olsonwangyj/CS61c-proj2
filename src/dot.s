@@ -23,14 +23,17 @@ dot:
     blt a3, t0, error2
     blt a4, t0, error2
     # Prologue
-    addi sp, sp, -8
+    addi sp, sp, -16
     sw s0, 0(sp)
     sw s1, 4(sp)
+    sw s2, 8(sp)
+    sw ra, 12(sp)
     li s1, 0
     li s0, 0
-    
+    mv s2, a2
+
 loop_start:
-    bge s1, a2, loop_end
+    bge s1, s2, loop_end
     mul t0, a3, s1
     mul t1, a4, s1
     li t3, 4
@@ -51,7 +54,9 @@ loop_end:
     # Epilogue
     lw s0, 0(sp)
     lw s1, 4(sp)
-    addi sp, sp, 8
+    lw s2, 8(sp)
+    lw ra, 12(sp)
+    addi sp, sp, 16
     
     ret
 
