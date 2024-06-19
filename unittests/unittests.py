@@ -203,17 +203,143 @@ class TestDot(TestCase):
     def test_simple(self):
         t = AssemblyTest(self, "dot.s")
         # create arrays in the data section
-        raise NotImplementedError("TODO")
-        # TODO
+        v0 = t.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        v1 = t.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
         # load array addresses into argument registers
-        # TODO
+        t.input_array("a0", v0)
+        t.input_array("a1", v1)
         # load array attributes into argument registers
-        # TODO
+        t.input_scalar("a2", len(v0))  # length of the arrays
+        t.input_scalar("a3", 1)  # stride of v0
+        t.input_scalar("a4", 1)  # stride of v1
         # call the `dot` function
         t.call("dot")
         # check the return value
-        # TODO
+        t.check_scalar("a0", 285)  # expected result
         t.execute()
+    
+    def test_stride(self):
+        t = AssemblyTest(self, "dot.s")
+        # create arrays in the data section
+        v0 = t.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        v1 = t.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        # load array addresses into argument registers
+        t.input_array("a0", v0)
+        t.input_array("a1", v1)
+        # load array attributes into argument registers
+        t.input_scalar("a2", 3)  # length of the arrays
+        t.input_scalar("a3", 1)  # stride of v0
+        t.input_scalar("a4", 2)  # stride of v1
+        # call the `dot` function
+        t.call("dot")
+        # check the return value
+        t.check_scalar("a0", 22)  # expected result
+        t.execute()
+    
+    def test_mixed_signs(self):
+        t = AssemblyTest(self, "dot.s")
+        # create arrays with mixed positive and negative values
+        v0 = t.array([1, -2, 3])
+        v1 = t.array([-1, 2, -3])
+        # load array addresses into argument registers
+        t.input_array("a0", v0)
+        t.input_array("a1", v1)
+        # load array attributes into argument registers
+        t.input_scalar("a2", 3)  # length of the arrays
+        t.input_scalar("a3", 1)  # stride of v0
+        t.input_scalar("a4", 1)  # stride of v1
+        # call the `dot` function
+        t.call("dot")
+        # check the return value
+        t.check_scalar("a0", -14)  # expected result
+        t.execute()
+
+    def test_different_lengths(self):
+        t = AssemblyTest(self, "dot.s")
+        # create arrays of different lengths
+        v0 = t.array([1, 2, 3])
+        v1 = t.array([4, 5])
+        # load array addresses into argument registers
+        t.input_array("a0", v0)
+        t.input_array("a1", v1)
+        # load array attributes into argument registers
+        t.input_scalar("a2", 2)  # use the length of the shorter array
+        t.input_scalar("a3", 1)  # stride of v0
+        t.input_scalar("a4", 1)  # stride of v1
+        # call the `dot` function
+        t.call("dot")
+        # check the return value
+        t.check_scalar("a0", 14)  # expected result
+        t.execute()
+
+    def test_single_element(self):
+        t = AssemblyTest(self, "dot.s")
+        # create arrays with a single element
+        v0 = t.array([42])
+        v1 = t.array([3])
+        # load array addresses into argument registers
+        t.input_array("a0", v0)
+        t.input_array("a1", v1)
+        # load array attributes into argument registers
+        t.input_scalar("a2", 1)  # length of the arrays
+        t.input_scalar("a3", 1)  # stride of v0
+        t.input_scalar("a4", 1)  # stride of v1
+        # call the `dot` function
+        t.call("dot")
+        # check the return value
+        t.check_scalar("a0", 126)  # expected result
+        t.execute()
+
+    def test_invalid_length(self):
+        t = AssemblyTest(self, "dot.s")
+        # create arrays in the data section
+        v0 = t.array([1, 2, 3])
+        v1 = t.array([4, 5, 6])
+        # load array addresses into argument registers
+        t.input_array("a0", v0)
+        t.input_array("a1", v1)
+        # load array attributes into argument registers
+        t.input_scalar("a2", 0)  # invalid length
+        t.input_scalar("a3", 1)  # stride of v0
+        t.input_scalar("a4", 1)  # stride of v1
+        # call the `dot` function
+        t.call("dot")
+        # check that the program exits with error code 75
+        t.execute(code=75)
+
+    def test_invalid_stride(self):
+        t = AssemblyTest(self, "dot.s")
+        # create arrays in the data section
+        v0 = t.array([1, 2, 3])
+        v1 = t.array([4, 5, 6])
+        # load array addresses into argument registers
+        t.input_array("a0", v0)
+        t.input_array("a1", v1)
+        # load array attributes into argument registers
+        t.input_scalar("a2", 3)  # length of the arrays
+        t.input_scalar("a3", 0)  # invalid stride for v0
+        t.input_scalar("a4", 1)  # stride of v1
+        # call the `dot` function
+        t.call("dot")
+        # check that the program exits with error code 76
+        t.execute(code=76)
+
+    def test_invalid_stride_v1(self):
+        t = AssemblyTest(self, "dot.s")
+        # create arrays in the data section
+        v0 = t.array([1, 2, 3])
+        v1 = t.array([4, 5, 6])
+        # load array addresses into argument registers
+        t.input_array("a0", v0)
+        t.input_array("a1", v1)
+        # load array attributes into argument registers
+        t.input_scalar("a2", 3)  # length of the arrays
+        t.input_scalar("a3", 1)  # stride of v0
+        t.input_scalar("a4", 0)  # invalid stride for v1
+        # call the `dot` function
+        t.call("dot")
+        # check that the program exits with error code 76
+        t.execute(code=76)
 
     @classmethod
     def tearDownClass(cls):
